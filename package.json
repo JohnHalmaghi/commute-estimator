@@ -4,6 +4,7 @@
   "description": "Estimate travel times to and from work",
   "main": "index.js",
   "scripts": {
+    "start": "node index.js",
     "test": "test"
   },
   "author": "John Halmaghi",
