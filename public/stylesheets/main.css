@@ -5,4 +5,14 @@ body {
 html, body, #map{
     height: 100%;
     width: 100%;
+    z-index: 1;
+}
+
+#input {
+    background-color: azure;
+    padding: 10px;
+    z-index: 2;
+    position: fixed;
+    top: 10%;
+    left: 4%;
 }
