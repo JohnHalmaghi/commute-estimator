@@ -4,13 +4,20 @@
   "description": "Estimate travel times to and from work",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "test": "test"
+    "start": "nodemon --exec babel-node index.js",
+    "build": "browserify index.js -o public/bundle.js"
   },
   "author": "John Halmaghi",
   "license": "ISC",
   "dependencies": {
     "dotenv": "^8.2.0",
     "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.9.0",
+    "@babel/node": "^7.8.7",
+    "browserify": "^16.5.1",
+    "leaflet-geosearch": "^2.7.0",
+    "nodemon": "^2.0.2"
   }
 }

@@ -1,52 +1,43 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
 
-        <link rel="stylesheet" type="text/css" href="stylesheets/main.css"/>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <link rel="stylesheet" type="text/css" href="stylesheets/main.css" />
+    <script type="text/javascript" src="config.js"></script>
+</head>
 
-        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.6.0/dist/leaflet.css"
-   integrity="sha512-xwE/Az9zrjBIphAcBb3F6JVqxf46+CDLwfLMHloNu6KEQCAWi6HcDUbeOfBIptF7tcCzusKFjFw2yuvEpDL9wQ=="
-   crossorigin=""/>
-
-        <script src="https://unpkg.com/leaflet@1.6.0/dist/leaflet.js"
-   integrity="sha512-gZwIG9x3wUXg2hdXF6+rVkLF/0Vi9U8D2Ntg4Ga5I5BZpVkVxlJWbSQtXPSiUTtC0TjtGOmxa1AJPuV0CPthew=="
-   crossorigin=""></script>
-
-    </head>
-    <body>
-        <div id="map"></div>
-        <script>
-        
-            var mymap = L.map('map').setView([39.82, -98.58], 5);
-        
-            L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token=pk.eyJ1IjoibWFwYm94IiwiYSI6ImNpejY4NXVycTA2emYycXBndHRqcmZ3N3gifQ.rJcFIG214AriISLbB6B5aw', {
-                maxZoom: 18,
-                attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, ' +
-                    '<a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, ' +
-                    'Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
-                id: 'mapbox/streets-v11',
-                tileSize: 512,
-                zoomOffset: -1
-            }).addTo(mymap);
-        
-        
-        </script>
-
-        <section>
-            <div id="input">
-                <form>
-                    <label for="homeAddress">Home Address:</label><br>
-                    <input type="text" id="homeAddress" name="homeAddress"><br>
-                    <label for="workAddress">Work Address:</label><br>
-                    <input type="text" id="workAddress" name="workAddress"><br>
-                    <label for="arriveTime">Arrive At Work:</label><br>
-                    <input type="time" id="arriveTime" name="arriveTime"><br>
-                    <label for="departTime">Depart From Work:</label><br>
-                    <input type="time" id="departTime" name="departTime"><br><br>
-                    <input type="submit" id="submit">
-                </form>
+<body>
+    <div id="map"></div>
+    <section>
+        <div id="inputArea">
+            <div class="inputElement">
+                <label for="homeAddress">Home Address:</label>
+                <input type="text" class="addressInput" id="homeAddress">
             </div>
-        </section>
-    </body>
+            <div class="inputElement">
+                <label for="workAddress">Work Address:</label>
+                <input type="text" class="addressInput" id="workAddress">
+            </div>
+            <div class="inputElement">
+                <label for="departureTime">Arrive At Work:</label>
+            </div>
+            <div class="inputElement">
+                <input type="time" id="departureTime" name="departureTime">
+            </div>
+            <div class="inputElement">
+                <label for="timeAtWork">Depart From Work:</label>
+            </div>
+            <div class="inputElement">
+                <input type="time" id="timeAtWork" name="timeAtWork">
+            </div>
+            <div class="inputElement">
+                <button id="submit">Calculate Commute</button>
+            </div>
+        </div>
+    </section>
+    <script src="./scripts/map.js"></script>
+</body>
+
 </html>
