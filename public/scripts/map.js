@@ -52,13 +52,15 @@ function calculateCommute() {
             trafficModel: 'bestguess',
         }
     }
+    console.log(workWeekLeaveHomeTimes[0]);
     directionsService.route(directionsRequest, function(result, status) {
         if(status === 'OK'){
             console.log(result);
-            console.log(directionsRenderer);
             directionsRenderer.setDirections(result);
+            var durationInTraffic = parseInt(result.routes[0].legs[0].duration_in_traffic.text.split(' ')[0]);
+            var arrivalTime = new Date(workWeekLeaveHomeTimes[0].getTime() + durationInTraffic*60000);
         } else {
-            alert('DirectionsService route failed with statusL ' + status);
+            alert('DirectionsService route failed with status ' + status);
         }
     })
     //calculate commute mon-fri
@@ -76,7 +78,8 @@ function calculateLeaveHomeTimes(time){
     var mins = time.split(':')[1];
     var d = new Date();
     var day = d.getDay();
-    var dif = d.getDate() - day + (day === 0 ? -6:1);
+    //set day to next Monday
+    var dif = d.getDate() + (8-day);
     workWeek = [];
     for(i = 0; i < 5; i++){
         workWeek[i] = new Date(d.setDate(dif+i));
