@@ -2,6 +2,14 @@ const GOOGLE_API_KEY = config.GOOGLE_API_KEY;
 var directionsService;
 var directionsRenderer;
 
+
+/*TODO:
+    - Input Validation
+    - calulate commute home
+    - Calculate departure time +- 30,60 minutes
+    - Update display when request is made
+    - Unit tests?
+*/
 // Initialize and add the map
 function initMap() {
     directionsRenderer = new google.maps.DirectionsRenderer();
@@ -40,25 +48,25 @@ function calculateCommute() {
     //get work end time
     timeAtWork = document.getElementById('timeAtWork').value;
     
-    //show commute on map
-    workWeekLeaveHomeTimes = calculateLeaveHomeTimes(leaveHomeTime);
+    const nextMonday = getNextMondayDate(leaveHomeTime);
 
     var directionsRequest = {
         origin: homeAddress,
         destination: workAddress,
         travelMode: 'DRIVING',
         drivingOptions: {
-            departureTime: workWeekLeaveHomeTimes[0],
+            departureTime: nextMonday,
             trafficModel: 'bestguess',
         }
     }
-    console.log(workWeekLeaveHomeTimes[0]);
     directionsService.route(directionsRequest, function(result, status) {
         if(status === 'OK'){
             console.log(result);
             directionsRenderer.setDirections(result);
             var durationInTraffic = parseInt(result.routes[0].legs[0].duration_in_traffic.text.split(' ')[0]);
-            var arrivalTime = new Date(workWeekLeaveHomeTimes[0].getTime() + durationInTraffic*60000);
+            var departureTime = result.request.drivingOptions.departureTime;
+            var arriveAtWork = new Date(departureTime.getTime() + durationInTraffic*60000);
+            debugger;
         } else {
             alert('DirectionsService route failed with status ' + status);
         }
@@ -69,25 +77,20 @@ function calculateCommute() {
     //update input area
 }
 
-function calculateArrivalTime(time){
-
+function calculateArrivalTime(commuteTime){
+    var arrivalTime = new Date(nextMonday.getTime() + durationInTraffic*60000);
+    return arrivalTime
 }
 
-function calculateLeaveHomeTimes(time){
+function getNextMondayDate(time){
     var hour = time.split(':')[0];
     var mins = time.split(':')[1];
-    var d = new Date();
-    var day = d.getDay();
-    //set day to next Monday
-    var dif = d.getDate() + (8-day);
-    workWeek = [];
-    for(i = 0; i < 5; i++){
-        workWeek[i] = new Date(d.setDate(dif+i));
-        workWeek[i].setHours(hour);
-        workWeek[i].setMinutes(mins);
-        //check is date is earlier than current, if so add 1 week
-    }
-    return workWeek;
+    var nextMonday = new Date();
+    var day = nextMonday.getDay();
+    nextMonday.setDate(nextMonday.getDate() + (8-day));
+    nextMonday.setHours(hour);
+    nextMonday.setMinutes(mins);
+    return nextMonday;
 }
 
 var mapsImport = document.createElement('script');

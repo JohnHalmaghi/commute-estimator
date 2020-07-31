@@ -18,6 +18,6 @@
     "@babel/node": "^7.8.7",
     "browserify": "^16.5.1",
     "leaflet-geosearch": "^2.7.0",
-    "nodemon": "^2.0.2"
+    "nodemon": "^2.0.4"
   }
 }
