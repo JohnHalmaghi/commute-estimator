@@ -6,6 +6,7 @@ var directionsRenderer;
 /*TODO:
     - Input Validation
     - calulate commute home
+    - Add async/wait/AJAX
     - Calculate departure time +- 30,60 minutes
     - Update display when request is made
     - Unit tests?
@@ -20,7 +21,8 @@ function initMap() {
         document.getElementById('map'), {zoom: 5, center: usaCenter});
     directionsRenderer.setMap(map);
     initializeAutoComplete();
-  }
+}
+
 
 function initializeAutoComplete() {
     var homeInput = document.getElementById('homeAddress');
@@ -36,41 +38,30 @@ document.getElementById('submit').addEventListener('click', () => {
 
 function calculateCommute() {
     //get home address
-    var directionsService = new google.maps.DirectionsService();
-    const homeAddress = document.getElementById('homeAddress').value;
-    const workAddress = document.getElementById('workAddress').value;
+    const homeAddress = "5251 Viewridge Court, San Diego, CA, USA"
+    const workAddress = "2500 Northside Drive, San Diego, CA, USA"
+
+    //const homeAddress = document.getElementById('homeAddress').value;
+    //const workAddress = document.getElementById('workAddress').value;
     var leaveHomeTime;
     var timeAtWork;
 
     //get work start time
-    leaveHomeTime = document.getElementById('departureTime').value;
+//    leaveHomeTime = document.getElementById('departureTime').value;
+    leaveHomeTime = "07:00";
     
     //get work end time
-    timeAtWork = document.getElementById('timeAtWork').value;
-    
-    const nextMonday = getNextMondayDate(leaveHomeTime);
+    timeAtWork = 8;
 
-    var directionsRequest = {
-        origin: homeAddress,
-        destination: workAddress,
-        travelMode: 'DRIVING',
-        drivingOptions: {
-            departureTime: nextMonday,
-            trafficModel: 'bestguess',
-        }
-    }
-    directionsService.route(directionsRequest, function(result, status) {
-        if(status === 'OK'){
-            console.log(result);
-            directionsRenderer.setDirections(result);
-            var durationInTraffic = parseInt(result.routes[0].legs[0].duration_in_traffic.text.split(' ')[0]);
-            var departureTime = result.request.drivingOptions.departureTime;
-            var arriveAtWork = new Date(departureTime.getTime() + durationInTraffic*60000);
-            debugger;
-        } else {
-            alert('DirectionsService route failed with status ' + status);
-        }
-    })
+    
+    const nextMondayToWork = getNextMondayDate(leaveHomeTime);
+
+    var directionsRequestToWork = generateDirectionsRequest(homeAddress, workAddress, nextMondayToWork);
+    var routeToWork = getRouteToWork(directionsRequestToWork, timeAtWork);
+//    var trafficToWork = parseInt(routeToWork.routes[0].legs[0].duration_in_traffic.text.split(' ')[0]);
+//    var trafficToHome = parseInt(routeToHome.routes[0].legs[0].duration_in_traffic.text.split(' ')[0]);
+
+//    console.log(toWork);
     //calculate commute mon-fri
     //average
     //repeat calculation for +- 30/60 mins
@@ -80,6 +71,61 @@ function calculateCommute() {
 function calculateArrivalTime(commuteTime){
     var arrivalTime = new Date(nextMonday.getTime() + durationInTraffic*60000);
     return arrivalTime
+}
+
+function getRouteToWork(directionsRequest, timeAtWork){
+    var directionsService = new google.maps.DirectionsService();
+    directionsService.route(directionsRequest, function(result, status) {
+        if(status === 'OK'){
+            tripToWork = processTrip(result);
+            directionsRenderer.setDirections(result);
+
+            var nextMondayLeaveWork = new Date(tripToWork.arrivalTime);
+            console.log(`Arrive at work : ${tripToWork.arrivalTime}`)
+            nextMondayLeaveWork.setHours(nextMondayLeaveWork.getHours() + timeAtWork);
+            var directionsRequestToHome = generateDirectionsRequest(directionsRequest.destination, directionsRequest.origin, nextMondayLeaveWork);
+            getRouteHome(directionsRequestToHome, tripToWork);
+        } else {
+            alert('DirectionsService route failed with status ' + status);
+        }
+    })
+}
+
+function getRouteHome(directionsRequest, toWork){
+    var directionsService = new google.maps.DirectionsService();
+    console.log(`Leave Work : ${directionsRequest.drivingOptions.departureTime}`);
+    directionsService.route(directionsRequest, function(result, status) {
+        if(status === 'OK'){
+            tripHome = processTrip(result);
+            console.log(`Arrive at home : ${tripHome.arrivalTime}`)
+        } else {
+            alert('DirectionsService route failed with status ' + status);
+        }
+    })
+}
+
+function processTrip(route){
+    var trip = {
+        durationWithTraffic : parseInt(route.routes[0].legs[0].duration.text.split(' ')[0]),
+        durationWithoutTraffic : parseInt(route.routes[0].legs[0].duration_in_traffic.text.split(' ')[0]),
+        timeInTraffic : 0,
+        arrivalTime : new Date(route.request.drivingOptions.departureTime),
+    }
+    trip.arrivalTime.setMinutes(trip.arrivalTime.getMinutes() + trip.durationWithTraffic);
+    trip.timeInTraffic = trip.durationWithTraffic - trip.durationWithoutTraffic;
+    return trip;
+}
+
+function generateDirectionsRequest(homeAddress, workAddress, departTime){
+    return {
+        origin: homeAddress,
+        destination: workAddress,
+        travelMode: 'DRIVING',
+        drivingOptions: {
+            departureTime: departTime,
+            trafficModel: 'bestguess',
+        }
+    }
 }
 
 function getNextMondayDate(time){
@@ -93,8 +139,9 @@ function getNextMondayDate(time){
     return nextMonday;
 }
 
+
 var mapsImport = document.createElement('script');
-mapsImport.src = "https://maps.googleapis.com/maps/api/js?key=" + GOOGLE_API_KEY + "&libraries=places&callback=initMap"
+mapsImport.src = "https://maps.googleapis.com/maps/api/js?key=" + GOOGLE_API_KEY + "&libraries=places&callback=initMap" //rename to endpoint?
 mapsImport.async = true;
 mapsImport.defer = true;
 document.body.appendChild(mapsImport);
