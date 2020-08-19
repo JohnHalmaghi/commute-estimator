@@ -32,46 +32,43 @@ function initializeAutoComplete() {
     new google.maps.places.Autocomplete(workInput);
 }
 
-document.getElementById('submit').addEventListener('click', () => {
-    calculateCommute();
-})
+document.getElementById('submit').addEventListener('click', calculateCommute);
 
 
 function calculateCommute() {
     //get home address
-    const homeAddress = "5251 Viewridge Court, San Diego, CA, USA"
-    const workAddress = "2500 Northside Drive, San Diego, CA, USA"
+    //const homeAddress = "5251 Viewridge Court, San Diego, CA, USA"
+    //const workAddress = "2500 Northside Drive, San Diego, CA, USA"
 
-    //const homeAddress = document.getElementById('homeAddress').value;
-    //const workAddress = document.getElementById('workAddress').value;
-    var leaveHomeTime;
-    var timeAtWork;
+    const homeAddress = document.getElementById('homeAddress').value;
+    const workAddress = document.getElementById('workAddress').value;
 
     //get work start time
-//    leaveHomeTime = document.getElementById('departureTime').value;
-    leaveHomeTime = "07:00";
+    const leaveHomeTime = document.getElementById('departureTime').value;
+    //leaveHomeTime = "07:00";
     
     //get work end time
-    timeAtWork = 8;
+    var timeAtWork = document.getElementById('timeAtWork').value;
+    timeAtWork = parseTimeAtWork(timeAtWork);
 
     
     const nextMondayToWork = getNextMondayDate(leaveHomeTime);
 
+    //validate input
     var directionsRequestToWork = generateDirectionsRequest(homeAddress, workAddress, nextMondayToWork);
-    var routeToWork = getRouteToWork(directionsRequestToWork, timeAtWork);
-//    var trafficToWork = parseInt(routeToWork.routes[0].legs[0].duration_in_traffic.text.split(' ')[0]);
-//    var trafficToHome = parseInt(routeToHome.routes[0].legs[0].duration_in_traffic.text.split(' ')[0]);
-
-//    console.log(toWork);
-    //calculate commute mon-fri
-    //average
-    //repeat calculation for +- 30/60 mins
-    //update input area
+    getRouteToWork(directionsRequestToWork, timeAtWork);
 }
 
 function calculateArrivalTime(commuteTime){
     var arrivalTime = new Date(nextMonday.getTime() + durationInTraffic*60000);
     return arrivalTime
+}
+
+function parseTimeAtWork(number){
+    var mod = number % 1;
+    var mins = mod * (60 * 1000);
+    var hours = (number - mod) * (60 * 60 * 1000);
+    return mins + hours;
 }
 
 function getRouteToWork(directionsRequest, timeAtWork){
@@ -82,26 +79,27 @@ function getRouteToWork(directionsRequest, timeAtWork){
             directionsRenderer.setDirections(result);
 
             var nextMondayLeaveWork = new Date(tripToWork.arrivalTime);
-            console.log(`Arrive at work : ${tripToWork.arrivalTime}`)
-            nextMondayLeaveWork.setHours(nextMondayLeaveWork.getHours() + timeAtWork);
+            nextMondayLeaveWork.setTime(nextMondayLeaveWork.getTime() + timeAtWork);
             var directionsRequestToHome = generateDirectionsRequest(directionsRequest.destination, directionsRequest.origin, nextMondayLeaveWork);
             getRouteHome(directionsRequestToHome, tripToWork);
         } else {
-            alert('DirectionsService route failed with status ' + status);
+            console.log(`DirectionsService route failed with status ${status}`);
+            console.log(`Failed directions request: ${directionsRequest}`);
+            alert("Invalid Input, please try again");
         }
     })
 }
 
 function getRouteHome(directionsRequest, toWork){
     var directionsService = new google.maps.DirectionsService();
-    console.log(`Leave Work : ${directionsRequest.drivingOptions.departureTime}`);
     directionsService.route(directionsRequest, function(result, status) {
         if(status === 'OK'){
             tripHome = processTrip(result);
-            console.log(`Arrive at home : ${tripHome.arrivalTime}`)
             displayResults(toWork, tripHome);
         } else {
-            alert('DirectionsService route failed with status ' + status);
+            console.log(`DirectionsService route failed with status ${status}`);
+            console.log(`Failed directions request: ${directionsRequest}`);
+            alert("Invalid Input, please try again");
         }
     })
 }
@@ -141,23 +139,65 @@ function getNextMondayDate(time){
     return nextMonday;
 }
 
+function setDisplayToNone(element){
+    element.style.display = "none";
+}
+
+function setDisplayToBlock(element){
+    element.style.display = "block";
+}
+
 function displayResults(tripToWork, tripHome){
     const displayHTML = `
-    <h2>Commute Summary</h2>
+    <h2><strong>Commute Summary</strong></h2>
+    <hr>
     <h3>Commute To Work</h3>
-    <p>Commute Time: ${tripToWork.durationWithTraffic}</p>
-    <p>Commute Time In Traffic: ${tripToWork.timeInTraffic}</p>
+    <p>Commute Time: ${tripToWork.durationWithTraffic} Minutes</p>
+    <p>Commute Time In Traffic: ${tripToWork.timeInTraffic} Minutes</p>
     <h3>Commute Time Home</h3>
-    <p>Commute Time: ${tripHome.durationWithTraffic}</p>
-    <p>Commute Time In Traffic: ${tripHome.timeInTraffic}</p>
+    <p>Commute Time: ${tripHome.durationWithTraffic} Minutes</p>
+    <p>Commute Time In Traffic: ${tripHome.timeInTraffic} Minutes</p>
     <h3>Total Commute</h3>
-    <p>Total Commute: ${tripToWork.durationWithTraffic + tripHome.durationWithTraffic}</p>
-    <p>Total Time In Traffic: ${tripToWork.timeInTraffic + tripHome.timeInTraffic}</p>`
+    <p>Total Commute: ${tripToWork.durationWithTraffic + tripHome.durationWithTraffic} Minutes</p>
+    <p>Total Time In Traffic: ${tripToWork.timeInTraffic + tripHome.timeInTraffic} Minutes</p>`
+    //add color to time in traffic output?
 
-    inputAreaElement.style.display = "none";
+    resultsElement.innerHTML = displayHTML + resultsElement.innerHTML;
 
-    resultsElement.innerHTML = displayHTML;
-    resultsElement.style.display = "block"
+    document.getElementById('reset').addEventListener('click', reset);
+
+    setDisplayToNone(inputAreaElement);
+    setDisplayToBlock(resultsElement);
+}
+
+function reset(){
+    setDisplayToBlock(inputAreaElement);
+    clearInput();
+    //clear input
+    setDisplayToNone(resultsElement); //need to clear added html?
+    clearResults();
+    initMap();
+    //clear results
+    //initMap();
+}
+
+function clearResults(){
+    resultsElement.innerHTML = `<button id="reset">Reset</button>`;
+}
+
+function clearInput(){
+    var inputElements = document.getElementsByTagName("input");
+    for (var i=0; i < inputElements.length; i++) {
+        if (inputElements[i].type == "text") {
+            inputElements[i].value = "";
+        }
+        if (inputElements[i].type == "number"){
+            inputElements[i].value = "";
+        }
+        if (inputElements[i].type == "time"){
+            inputElements[i].value = "";
+        }
+    }
 }
 
 

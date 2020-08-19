@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 
+<!-- SET WEBSITE BASE TEXT SIZE (10px), THEN USE rem FOR OTHER SIZES-->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
@@ -11,7 +12,6 @@
 <body>
     <div id="map"></div>
         <div id="inputArea">
-
             <div class="inputElement">
                 <label for="homeAddress">Home Address:</label>
                 <input type="text" class="addressInput" id="homeAddress">
@@ -36,7 +36,9 @@
                 <button id="submit">Calculate Commute</button>
             </div>
         </div>
-        <div class="results"></div>
+        <div class="results">
+            <button id="reset">Reset</button>
+        </div>
     <script src="./scripts/map.js"></script>
 </body>
 

@@ -9,9 +9,11 @@ html, body, #map{
 }
 
 .results {
-    background-color: azure;
+    background-color: #0066CC;
+    color: white;
+    border-radius: 25px;    
     width: 300px;
-    height: 400px;
+    height: 430px;
     padding: 10px;
     z-index: 2;
     position: fixed;
@@ -24,7 +26,9 @@ html, body, #map{
 }
 
 #inputArea {
-    background-color: azure;
+    background-color: #0066CC;
+    color: white;
+    border-radius: 25px;
     width: 400px;
     height: 300px;
     padding: 10px;
