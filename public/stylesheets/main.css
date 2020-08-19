@@ -8,6 +8,21 @@ html, body, #map{
     z-index: 1;
 }
 
+.results {
+    background-color: azure;
+    width: 300px;
+    height: 400px;
+    padding: 10px;
+    z-index: 2;
+    position: fixed;
+    left: 5%;
+    top: 10%;
+    transform: translate(-10%, -5%);
+    display: none;
+    padding: 20px;
+    opacity: 90%;
+}
+
 #inputArea {
     background-color: azure;
     width: 400px;

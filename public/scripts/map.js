@@ -1,7 +1,8 @@
 const GOOGLE_API_KEY = config.GOOGLE_API_KEY; 
 var directionsService;
 var directionsRenderer;
-
+const resultsElement = document.querySelector(".results");
+const inputAreaElement = document.querySelector("#inputArea");
 
 /*TODO:
     - Input Validation
@@ -98,6 +99,7 @@ function getRouteHome(directionsRequest, toWork){
         if(status === 'OK'){
             tripHome = processTrip(result);
             console.log(`Arrive at home : ${tripHome.arrivalTime}`)
+            displayResults(toWork, tripHome);
         } else {
             alert('DirectionsService route failed with status ' + status);
         }
@@ -137,6 +139,25 @@ function getNextMondayDate(time){
     nextMonday.setHours(hour);
     nextMonday.setMinutes(mins);
     return nextMonday;
+}
+
+function displayResults(tripToWork, tripHome){
+    const displayHTML = `
+    <h2>Commute Summary</h2>
+    <h3>Commute To Work</h3>
+    <p>Commute Time: ${tripToWork.durationWithTraffic}</p>
+    <p>Commute Time In Traffic: ${tripToWork.timeInTraffic}</p>
+    <h3>Commute Time Home</h3>
+    <p>Commute Time: ${tripHome.durationWithTraffic}</p>
+    <p>Commute Time In Traffic: ${tripHome.timeInTraffic}</p>
+    <h3>Total Commute</h3>
+    <p>Total Commute: ${tripToWork.durationWithTraffic + tripHome.durationWithTraffic}</p>
+    <p>Total Time In Traffic: ${tripToWork.timeInTraffic + tripHome.timeInTraffic}</p>`
+
+    inputAreaElement.style.display = "none";
+
+    resultsElement.innerHTML = displayHTML;
+    resultsElement.style.display = "block"
 }
 
 
