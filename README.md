@@ -10,6 +10,12 @@ My personal goals in completing this project were to continue to improve my unde
 
 Coming soon.
 
+## TODO
+
+* Figure out more eloquent async calls to Google Maps Directions API
+* Add tests
+* Add commute check for +/- 30 mintes and alert user if commute is drastically shorter
+
 ## Deployment
 
 The current plan is to deploy this site on Netlify. URL coming soon.
