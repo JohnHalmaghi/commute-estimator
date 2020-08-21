@@ -4,6 +4,7 @@ var directionsRenderer;
 const resultsElement = document.querySelector(".results");
 const inputAreaElement = document.querySelector("#inputArea");
 
+
 /*TODO:
     - Input Validation
     - calulate commute home
@@ -37,19 +38,21 @@ document.getElementById('submit').addEventListener('click', calculateCommute);
 
 function calculateCommute() {
     //get home address
-    //const homeAddress = "5251 Viewridge Court, San Diego, CA, USA"
-    //const workAddress = "2500 Northside Drive, San Diego, CA, USA"
+    const homeAddress = "5251 Viewridge Court, San Diego, CA, USA"
+    const workAddress = "2500 Northside Drive, San Diego, CA, USA"
 
-    const homeAddress = document.getElementById('homeAddress').value;
-    const workAddress = document.getElementById('workAddress').value;
+    //const homeAddress = document.getElementById('homeAddress').value;
+    //const workAddress = document.getElementById('workAddress').value;
 
     //get work start time
-    const leaveHomeTime = document.getElementById('departureTime').value;
-    //leaveHomeTime = "07:00";
+    //const leaveHomeTime = document.getElementById('departureTime').value;
+    leaveHomeTime = "07:00";
     
     //get work end time
-    var timeAtWork = document.getElementById('timeAtWork').value;
-    timeAtWork = parseTimeAtWork(timeAtWork);
+    //var timeAtWork = document.getElementById('timeAtWork').value;
+    //timeAtWork = parseTimeAtWork(timeAtWork);
+    var timeAtWork = 8;
+    timeAtWork = parseTimeAtWork(timeAtWork)
 
     
     const nextMondayToWork = getNextMondayDate(leaveHomeTime);
@@ -57,6 +60,7 @@ function calculateCommute() {
     //validate input
     var directionsRequestToWork = generateDirectionsRequest(homeAddress, workAddress, nextMondayToWork);
     getRouteToWork(directionsRequestToWork, timeAtWork);
+    //calculate +- 30mins and compare?
 }
 
 function calculateArrivalTime(commuteTime){
@@ -173,12 +177,9 @@ function displayResults(tripToWork, tripHome){
 function reset(){
     setDisplayToBlock(inputAreaElement);
     clearInput();
-    //clear input
-    setDisplayToNone(resultsElement); //need to clear added html?
+    setDisplayToNone(resultsElement);
     clearResults();
     initMap();
-    //clear results
-    //initMap();
 }
 
 function clearResults(){
