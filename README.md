@@ -16,8 +16,8 @@ The current plan is to deploy this site on Netlify. URL coming soon.
 
 ## Built With
 
-* [Node.js](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
-* [NPM](https://maven.apache.org/) - Dependency Management
+* [Node.js](https://nodejs.org/)
+* [NPM](https://www.npmjs.com/)
 * [Testing] Coming soon
 
 ## Versioning
