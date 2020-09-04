@@ -1,18 +1,18 @@
-const GOOGLE_API_KEY = config.GOOGLE_API_KEY; 
-var directionsService;
+import { sanitize } from 'dompurify';
+var GOOGLE_API_KEY = config.GOOGLE_API_KEY; 
 var directionsRenderer;
 const resultsElement = document.querySelector(".results");
 const inputAreaElement = document.querySelector("#inputArea");
 
+window.onload
 
 /*TODO:
-    - Input Validation
-    - calulate commute home
-    - Add async/wait/AJAX
     - Calculate departure time +- 30,60 minutes
-    - Update display when request is made
     - Unit tests?
+    - Sanitize input
+    - Make responsive
 */
+
 // Initialize and add the map
 function initMap() {
     directionsRenderer = new google.maps.DirectionsRenderer();
@@ -23,6 +23,7 @@ function initMap() {
         document.getElementById('map'), {zoom: 5, center: usaCenter});
     directionsRenderer.setMap(map);
     initializeAutoComplete();
+    document.getElementById('submit').addEventListener('click', calculateCommute);
 }
 
 
@@ -33,34 +34,26 @@ function initializeAutoComplete() {
     new google.maps.places.Autocomplete(workInput);
 }
 
-document.getElementById('submit').addEventListener('click', calculateCommute);
+async function calculateCommute() {
+    const homeAddress = sanitize(document.getElementById('homeAddress').value, {
+        FORBID_ATTR: ['width', 'height', 'style'],
+        FORBID_TAGS: ['style'],
+    });
+    const workAddress = sanitize(document.getElementById('workAddress').value, {
+        FORBID_ATTR: ['width', 'height', 'style'],
+        FORBID_TAGS: ['style'],
+    });
 
-
-function calculateCommute() {
-    //get home address
-    const homeAddress = "5251 Viewridge Court, San Diego, CA, USA"
-    const workAddress = "2500 Northside Drive, San Diego, CA, USA"
-
-    //const homeAddress = document.getElementById('homeAddress').value;
-    //const workAddress = document.getElementById('workAddress').value;
-
-    //get work start time
-    //const leaveHomeTime = document.getElementById('departureTime').value;
-    leaveHomeTime = "07:00";
+    const leaveHomeTime = document.getElementById('departureTime').value;
     
-    //get work end time
-    //var timeAtWork = document.getElementById('timeAtWork').value;
-    //timeAtWork = parseTimeAtWork(timeAtWork);
-    var timeAtWork = 8;
-    timeAtWork = parseTimeAtWork(timeAtWork)
-
+    var timeAtWork = document.getElementById('timeAtWork').value;
+    timeAtWork = parseTimeAtWork(timeAtWork);
     
     const nextMondayToWork = getNextMondayDate(leaveHomeTime);
 
-    //validate input
     var directionsRequestToWork = generateDirectionsRequest(homeAddress, workAddress, nextMondayToWork);
+
     getRouteToWork(directionsRequestToWork, timeAtWork);
-    //calculate +- 30mins and compare?
 }
 
 function calculateArrivalTime(commuteTime){
@@ -109,15 +102,33 @@ function getRouteHome(directionsRequest, toWork){
 }
 
 function processTrip(route){
+    console.log(route);
     var trip = {
-        durationWithTraffic : parseInt(route.routes[0].legs[0].duration.text.split(' ')[0]),
-        durationWithoutTraffic : parseInt(route.routes[0].legs[0].duration_in_traffic.text.split(' ')[0]),
+        durationWithTraffic : route.routes[0].legs[0].duration.value,
+        durationWithTrafficString: '',
+        durationWithoutTraffic : route.routes[0].legs[0].duration_in_traffic.value,
+        durationWithoutTrafficString: '',
         timeInTraffic : 0,
+        timeInTrafficString: '',
         arrivalTime : new Date(route.request.drivingOptions.departureTime),
     }
-    trip.arrivalTime.setMinutes(trip.arrivalTime.getMinutes() + trip.durationWithTraffic);
-    trip.timeInTraffic = trip.durationWithTraffic - trip.durationWithoutTraffic;
+    trip.arrivalTime.setTime(trip.arrivalTime.getTime() + trip.durationWithTraffic);
+    trip.durationWithoutTrafficString = msToTime(trip.durationWithoutTrafficString);
+    trip.durationWithTraffic = msToTime(trip.durationWithTraffic);
+    trip.timeInTraffic = trip.durationWithTraffic > trip.durationWithoutTraffic ? trip.durationWithTraffic - trip.durationWithoutTraffic : 0;
+    trip.timeInTrafficString = msToTime(trip.timeInTraffic);
     return trip;
+}
+
+function msToTime(duration) {
+    var minutes = Math.floor((duration / (1000 * 60)) % 60);
+    var hours = Math.floor((duration / (1000 * 60 * 60)));
+  
+    hours = (hours < 10) ? "0" + hours : hours;
+    minutes = (minutes < 10) ? "0" + minutes : minutes;
+  
+    return hours + ":" + minutes;
+
 }
 
 function generateDirectionsRequest(homeAddress, workAddress, departTime){
@@ -152,18 +163,20 @@ function setDisplayToBlock(element){
 }
 
 function displayResults(tripToWork, tripHome){
+    var totalCommute = msToTime(tripToWork.durationWithTraffic + tripHome.durationWithTraffic);
+    var totalTimeInTraffic = msToTime(tripToWork.timeInTraffic + tripHome.timeInTraffic);
     const displayHTML = `
     <h2><strong>Commute Summary</strong></h2>
     <hr>
     <h3>Commute To Work</h3>
-    <p>Commute Time: ${tripToWork.durationWithTraffic} Minutes</p>
-    <p>Commute Time In Traffic: ${tripToWork.timeInTraffic} Minutes</p>
+    <p>Commute Time: ${tripToWork.durationWithTrafficString}</p>
+    <p>Commute Time In Traffic: ${tripToWork.timeInTrafficString}</p>
     <h3>Commute Time Home</h3>
-    <p>Commute Time: ${tripHome.durationWithTraffic} Minutes</p>
-    <p>Commute Time In Traffic: ${tripHome.timeInTraffic} Minutes</p>
+    <p>Commute Time: ${tripHome.durationWithTrafficString}</p>
+    <p>Commute Time In Traffic: ${tripHome.timeInTrafficString}</p>
     <h3>Total Commute</h3>
-    <p>Total Commute: ${tripToWork.durationWithTraffic + tripHome.durationWithTraffic} Minutes</p>
-    <p>Total Time In Traffic: ${tripToWork.timeInTraffic + tripHome.timeInTraffic} Minutes</p>`
+    <p>Total Commute: ${totalCommute}</p>
+    <p>Total Time In Traffic: ${totalTimeInTraffic}</p>`
     //add color to time in traffic output?
 
     resultsElement.innerHTML = displayHTML + resultsElement.innerHTML;
@@ -201,9 +214,8 @@ function clearInput(){
     }
 }
 
-
 var mapsImport = document.createElement('script');
-mapsImport.src = "https://maps.googleapis.com/maps/api/js?key=" + GOOGLE_API_KEY + "&libraries=places&callback=initMap" //rename to endpoint?
+mapsImport.src = "https://maps.googleapis.com/maps/api/js?key=" + GOOGLE_API_KEY + "&libraries=places&callback=initMap"
 mapsImport.async = true;
 mapsImport.defer = true;
 document.body.appendChild(mapsImport);
